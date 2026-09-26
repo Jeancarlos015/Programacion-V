@@ -1,8 +1,12 @@
+# StudentFlow Backend
+
+Backend base en Node.js + Express + MySQL para el proyecto StudentFlow.
+
 ## Requisitos previos
 
 * **Node.js** instalado
 * **MySQL** corriendo (por ejemplo, vía XAMPP)
-* Base de datos `studentflow` creada con los scripts de la carpeta
+* Base de datos `studentflow` creada con los scripts de la carpeta `BD`
 
 ## Cómo arrancar
 
