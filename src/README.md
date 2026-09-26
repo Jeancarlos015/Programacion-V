@@ -1,24 +1,19 @@
-# StudentFlow Backend
-
-Backend base en Node.js
-+ Express
-+ MYSQL para el proyecto StudentFlow
-
 ## Requisitos previos
 
-- Node.js instalado
-- MYSQL corriendo (por ejemplo, via XAMPP)
-- Base de datos studentflow creada con los scripts de la carpeta
+* **Node.js** instalado
+* **MySQL** corriendo (por ejemplo, vía XAMPP)
+* Base de datos `studentflow` creada con los scripts de la carpeta
 
-## Como arrancar
+## Cómo arrancar
 
-1. Copiar .env.example a .env y ajustar las credenciales locales.
-2. Instalar dependencias: npm install
-3. Iniciar en modo desarrollo: npm run dev
-4. Verificar que responde: http://localhost:3000/api/v1/health
+1. Copiar `.env.example` a `.env` y ajustar las credenciales locales.
+2. Instalar dependencias: `npm install`
+3. Iniciar en modo desarrollo: `npm run dev`
+4. Verificar que responde: `http://localhost:3000/api/v1/health`
 
-Estructura
+## Estructura
 
+```
 src/
   config/         Conexión a MySQL
   controllers/    Lógica que responde cada endpoint
@@ -30,3 +25,4 @@ src/
   utils/          Utilidades (respuestas estandarizadas)
   app.js          Instancia de Express
   server.js       Punto de arranque
+```
