@@ -1,47 +1,47 @@
 import { pool } from "../config/database.js";
 
 const sortableFields = {
-    id: "m.id_materia",
-    nombre: "m.nombre",
-    codigo: "m.codigo",
-    creditos: "m.creditos",
-    color: "m.color",
-    activa: "m.activa",
-    createdAt : "m.created_at",
-    updatedAt: "m.updated_at"
+  id: "m.id_materia",
+  nombre: "m.nombre",
+  codigo: "m.codigo",
+  creditos: "m.creditos",
+  color: "m.color",
+  activa: "m.activa",
+  createdAt: "m.created_at",
+  updatedAt: "m.updated_at"
 };
 
-function normalizeSort(sort, order){
-    const column = sortableFields[sort] || sortableFields.nombre;
-    const direction = String(order).toLocaleLowerCase === "desc" ? "DESC": "ASC";
-
-    return `${column} ${direction}`
+function normalizeSort(sort, order) {
+  const column = sortableFields[sort] || sortableFields.nombre;
+  const direction = String(order).toLowerCase() === "desc"? "DESC" : "ASC";
+  return `${column} ${direction}`;
 }
 
 function mapMateria(row) {
-    return {
-        id: row.id,
-        nombre: row.nombre,
-        codigo: row.codigo,
-        creditos: row.creditos,
-        color: row.color,
-        activa: row.activa,
-        createdAt : row.created_at,
-        updatedAt : row.created_at       
-    };
+  return {
+    id: row.id,
+    usuarioId: row.usuarioId,
+    nombre: row.nombre,
+    codigo: row.codigo,
+    creditos: row.creditos,
+    color: row.color,
+    activa:!!row.activa,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
+  };
 }
 
 export async function findAllByUserId(userId, filters = {}) {
-  const conditions = ["m.id_usuario = ?"];
+  const conditions = ["m.id_usuario =?"];
   const params = [userId];
 
   if (typeof filters.activa === "boolean") {
-    conditions.push("m.activa = ?");
-    params.push(filters.activa ? 1 : 0);
+    conditions.push("m.activa =?");
+    params.push(filters.activa? 1 : 0);
   }
 
   if (filters.search) {
-    conditions.push("(m.nombre LIKE ? OR m.codigo LIKE ?)");
+    conditions.push("(m.nombre LIKE? OR m.codigo LIKE?)");
     params.push(`%${filters.search}%`, `%${filters.search}%`);
   }
 
@@ -53,8 +53,8 @@ export async function findAllByUserId(userId, filters = {}) {
   );
 
   const orderBy = normalizeSort(filters.sort, filters.order);
-  const limit = filters.limit;
-  const offset = (filters.page - 1) * limit;
+  const limit = Number(filters.limit) || 10;
+  const offset = (Number(filters.page) - 1) * limit;
 
   const [rows] = await pool.execute(
     `SELECT
@@ -70,8 +70,8 @@ export async function findAllByUserId(userId, filters = {}) {
      FROM materia m
      WHERE ${conditions.join(" AND ")}
      ORDER BY ${orderBy}
-     LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
+     LIMIT ${limit} OFFSET ${offset}`,
+    params
   );
 
   return {
@@ -80,7 +80,7 @@ export async function findAllByUserId(userId, filters = {}) {
   };
 }
 
-export async function finByIdAndUserId(id, userId) {
+export async function findByIdAndUserId(id, userId) {
   const [rows] = await pool.execute(
     `SELECT
        m.id_materia AS id,
@@ -93,25 +93,39 @@ export async function finByIdAndUserId(id, userId) {
        m.created_at AS createdAt,
        m.updated_at AS updatedAt
      FROM materia m
-     WHERE m.id_materia = ? AND m.id_usuario = ?`,
+     WHERE m.id_materia =? AND m.id_usuario =?`,
     [id, userId]
   );
 
-  return rows[0] ? mapMateria(rows[0]) : null; 
+  return rows[0]? mapMateria(rows[0]) : null;
 }
 
-export async function createMateria(userId, materia){
-  cons [result] = await pool.execute(
-    `INSERT INTO materia (id_usuario, nombre, codigo, color, credistos, activa)
-    VALUES(?, ?, ?, ?, ?, ?)`,
-    [
-      userId,
-      materia.nombre,
-      materia.codigo,
-      materia.color,
-      materia.creditos,
-      materia.activa ? 1 : 0
-    ]
-  );
-  return finByIdAndUserId(result.insertId, userId);
+export async function existsByCode(userId, codigo, excludeId) {
+  const params = [userId, codigo];
+  let sql = "SELECT 1 FROM materia WHERE id_usuario = ? AND codigo = ?";
+
+  if (excludeId) {
+    sql += " AND id_materia <> ?";
+    params.push(excludeId);
+  }
+
+  sql += " LIMIT 1";
+
+  const [rows] = await pool.execute(sql, params);
+  return rows.length > 0;
+}
+
+export async function existsByName(userId, nombre, excludeId) {
+  const params = [userId, nombre];
+  let sql = "SELECT 1 FROM materia WHERE id_usuario = ? AND nombre = ?";
+
+  if (excludeId) {
+    sql += " AND id_materia <> ?";
+    params.push(excludeId);
+  }
+
+  sql += " LIMIT 1";
+
+  const [rows] = await pool.execute(sql, params);
+  return rows.length > 0;
 }
