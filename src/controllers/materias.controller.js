@@ -1,83 +1,62 @@
 import * as materiasService from "../services/materias.service.js";
 import { sendSuccess } from "../utils/api-response.js";
-import {
-  validateMateriaListQuery,
-  validateCreateMateria,
-  validateMateriaId,
-} from "../validators/materias.validator.js";
+import { validateMateriaId } from "../validators/materias.validator.js";
 
 export async function listMaterias(request, response, next) {
   try {
-    const filters = request.query;
-    const result = await materiasService.listMaterias(request.user_id, filters);
+    const result = await materiasService.listMaterias(request.user?.id || request.user_id, request.query);
     return sendSuccess(response, result.data, 200, result.meta);
-  } catch (error) {
-    return next(error);
-  }
+  } catch (error) { return next(error); }
 }
 
 export async function getMateria(request, response, next) {
   try {
-    const id = request.params.id;
-    const materia = await materiasService.getMateriaById(id, request.user_id);
+    const materia = await materiasService.getMateriaById(request.params.id, request.user?.id || request.user_id);
     return sendSuccess(response, materia);
-  } catch (error) {
-    return next(error);
-  }
+  } catch (error) { return next(error); }
 }
 
 export async function createMateria(request, response, next) {
   try {
-    const payload = request.body;
-    const materia = await materiasService.createMateria(request.user_id, payload);
+    const materia = await materiasService.createMateria(request.user?.id || request.user_id, request.body);
     return sendSuccess(response, materia, 201);
-  } catch (error) {
-    return next(error);
-  }
+  } catch (error) { return next(error); }
 }
 
 export async function replaceMateria(request, response, next) {
   try {
-    const id = request.params.id;
-    const payload = request.body;
-    const materia = await materiasService.replaceMateria(id, request.user_id, payload);
+    const materia = await materiasService.replaceMateria(request.params.id, request.user?.id || request.user_id, request.body);
     return sendSuccess(response, materia, 200);
-  } catch (error) {
-    return next(error);
-  }
+  } catch (error) { return next(error); }
 }
 
 export async function updateMateria(request, response, next) {
   try {
-    const id = request.params.id;
-    const payload = request.body;
-    const materia = await materiasService.updateMateria(id, request.user_id, payload);
+    const materia = await materiasService.updateMateria(request.params.id, request.user?.id || request.user_id, request.body);
     return sendSuccess(response, materia, 200);
-  } catch (error) {
-    return next(error);
-  }
+  } catch (error) { return next(error); }
 }
 
 export async function deleteMateria(request, response, next) {
   try {
-    const id = request.params.id;
-    await materiasService.deleteMateria(id, request.user_id);
-    return sendSuccess(response, { id }, 200);
-  } catch (error) {
-    return next(error);
-  }
+    await materiasService.deleteMateria(request.params.id, request.user?.id || request.user_id);
+    return sendSuccess(response, { id: request.params.id }, 200);
+  } catch (error) { return next(error); }
 }
 
-export async function getTareasPorMateria(request, response, next) {
+// CLASE 5 
+export async function listTareasByMateria(request, response, next) {
   try {
-    const idMateria = request.params.id;
-    const idUsuario = request.headers['x-user-id'] || request.user_id;
-    if (!idUsuario) {
-      return response.status(400).json({ error: "Debes pasar el USERID" });
-    }
-    const tareas = await materiasService.getTareasByMateria(idMateria, idUsuario);
-    return sendSuccess(response, tareas, 200);
-  } catch (error) {
-    return next(error);
-  }
+    const id = validateMateriaId(request.params.id);
+    const tareas = await materiasService.listTareasByMateria(id, request.user?.id || request.user_id);
+    return sendSuccess(response, tareas);
+  } catch (error) { return next(error); }
+}
+
+export async function listEventosByMateria(request, response, next) {
+  try {
+    const id = validateMateriaId(request.params.id);
+    const eventos = await materiasService.listEventosByMateria(id, request.user?.id || request.user_id);
+    return sendSuccess(response, eventos);
+  } catch (error) { return next(error); }
 }
