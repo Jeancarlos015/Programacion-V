@@ -130,24 +130,20 @@ export async function existsByName(userId, nombre, excludeId) {
   return rows.length > 0;
 }
 
-export async function findEventosByMateriaAndUserId(id, userId) {
+
+export async function findTareasByMateriaAndUserId(id, userId) {
   const [rows] = await pool.execute(
-    `SELECT
-       e.id_evento AS id,
-       e.id_materia AS materiaId,
-       e.titulo,
-       e.descripcion,
-       e.fecha,
-       e.hora_inicio AS horaInicio,
-       e.hora_fin AS horaFin,
-       e.tipo,
-       e.created_at AS createdAt,
-       e.updated_at AS updatedAt
-     FROM evento e
-     INNER JOIN materia m ON m.id_materia = e.id_materia
-     WHERE m.id_materia = ? AND m.id_usuario = ?`,
+    `SELECT t.id_tarea AS id, t.id_materia AS materiaId, t.titulo, t.descripcion, t.fecha_entrega AS fechaEntrega, t.hora_entrega AS horaEntrega, t.prioridad, t.estado, t.carga_estimada_minutos AS cargaEstimadaMinutos, t.porcentaje_avance AS porcentajeAvance, t.created_at AS createdAt, t.updated_at AS updatedAt FROM tarea t INNER JOIN materia m ON m.id_materia = t.id_materia WHERE m.id_materia =? AND m.id_usuario =?`,
     [id, userId]
   );
+  return rows;
+}
 
+
+export async function findEventosByMateriaAndUserId(id, userId) {
+  const [rows] = await pool.execute(
+    `SELECT e.id_evento AS id, e.id_materia AS materiaId, e.titulo, e.descripcion, e.fecha, e.hora_inicio AS horaInicio, e.hora_fin AS horaFin, e.tipo, e.created_at AS createdAt, e.updated_at AS updatedAt FROM evento e INNER JOIN materia m ON m.id_materia = e.id_materia WHERE m.id_materia =? AND m.id_usuario =?`,
+    [id, userId]
+  );
   return rows;
 }
