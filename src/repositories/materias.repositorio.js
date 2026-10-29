@@ -13,7 +13,7 @@ const sortableFields = {
 
 function normalizeSort(sort, order) {
   const column = sortableFields[sort] || sortableFields.nombre;
-  const direction = String(order).toLowerCase() === "desc"? "DESC" : "ASC";
+  const direction = String(order).toLowerCase() === "desc" ? "DESC" : "ASC";
   return `${column} ${direction}`;
 }
 
@@ -25,23 +25,23 @@ function mapMateria(row) {
     codigo: row.codigo,
     creditos: row.creditos,
     color: row.color,
-    activa:!!row.activa,
+    activa: !!row.activa,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt
   };
 }
 
 export async function findAllByUserId(userId, filters = {}) {
-  const conditions = ["m.id_usuario =?"];
+  const conditions = ["m.id_usuario = ?"];
   const params = [userId];
 
   if (typeof filters.activa === "boolean") {
-    conditions.push("m.activa =?");
-    params.push(filters.activa? 1 : 0);
+    conditions.push("m.activa = ?");
+    params.push(filters.activa ? 1 : 0);
   }
 
   if (filters.search) {
-    conditions.push("(m.nombre LIKE? OR m.codigo LIKE?)");
+    conditions.push("(m.nombre LIKE ? OR m.codigo LIKE ?)");
     params.push(`%${filters.search}%`, `%${filters.search}%`);
   }
 
@@ -53,8 +53,11 @@ export async function findAllByUserId(userId, filters = {}) {
   );
 
   const orderBy = normalizeSort(filters.sort, filters.order);
-  const limit = Number(filters.limit) || 10;
-  const offset = (Number(filters.page) - 1) * limit;
+  
+  // CORREGIDO: Evita NaN
+  const page = Math.max(1, parseInt(filters.page) || 1);
+  const limit = Math.max(1, Math.min(100, parseInt(filters.limit) || 10));
+  const offset = (page - 1) * limit;
 
   const [rows] = await pool.execute(
     `SELECT
@@ -93,11 +96,11 @@ export async function findByIdAndUserId(id, userId) {
        m.created_at AS createdAt,
        m.updated_at AS updatedAt
      FROM materia m
-     WHERE m.id_materia =? AND m.id_usuario =?`,
+     WHERE m.id_materia = ? AND m.id_usuario = ?`,
     [id, userId]
   );
 
-  return rows[0]? mapMateria(rows[0]) : null;
+  return rows[0] ? mapMateria(rows[0]) : null;
 }
 
 export async function existsByCode(userId, codigo, excludeId) {
@@ -130,19 +133,17 @@ export async function existsByName(userId, nombre, excludeId) {
   return rows.length > 0;
 }
 
-
 export async function findTareasByMateriaAndUserId(id, userId) {
   const [rows] = await pool.execute(
-    `SELECT t.id_tarea AS id, t.id_materia AS materiaId, t.titulo, t.descripcion, t.fecha_entrega AS fechaEntrega, t.hora_entrega AS horaEntrega, t.prioridad, t.estado, t.carga_estimada_minutos AS cargaEstimadaMinutos, t.porcentaje_avance AS porcentajeAvance, t.created_at AS createdAt, t.updated_at AS updatedAt FROM tarea t INNER JOIN materia m ON m.id_materia = t.id_materia WHERE m.id_materia =? AND m.id_usuario =?`,
+    `SELECT t.id_tarea AS id, t.id_materia AS materiaId, t.titulo, t.descripcion, t.fecha_entrega AS fechaEntrega, t.hora_entrega AS horaEntrega, t.prioridad, t.estado, t.carga_estimada_minutos AS cargaEstimadaMinutos, t.porcentaje_avance AS porcentajeAvance, t.created_at AS createdAt, t.updated_at AS updatedAt FROM tarea t INNER JOIN materia m ON m.id_materia = t.id_materia WHERE m.id_materia = ? AND m.id_usuario = ?`,
     [id, userId]
   );
   return rows;
 }
 
-
 export async function findEventosByMateriaAndUserId(id, userId) {
   const [rows] = await pool.execute(
-    `SELECT e.id_evento AS id, e.id_materia AS materiaId, e.titulo, e.descripcion, e.fecha, e.hora_inicio AS horaInicio, e.hora_fin AS horaFin, e.tipo, e.created_at AS createdAt, e.updated_at AS updatedAt FROM evento e INNER JOIN materia m ON m.id_materia = e.id_materia WHERE m.id_materia =? AND m.id_usuario =?`,
+    `SELECT e.id_evento AS id, e.id_materia AS materiaId, e.titulo, e.descripcion, e.fecha, e.hora_inicio AS horaInicio, e.hora_fin AS horaFin, e.tipo, e.created_at AS createdAt, e.updated_at AS updatedAt FROM evento e INNER JOIN materia m ON m.id_materia = e.id_materia WHERE m.id_materia = ? AND m.id_usuario = ?`,
     [id, userId]
   );
   return rows;
