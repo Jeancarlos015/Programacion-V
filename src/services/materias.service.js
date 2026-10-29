@@ -1,4 +1,4 @@
-import * as materiasRepository from "../repositories/materias.repositorio.js";
+import * as materiasRepository from "../repositories/materias.repository.js";
 import { HttpError } from "../utils/http-error.js";
 
 export async function listMaterias(userId, filters) {
